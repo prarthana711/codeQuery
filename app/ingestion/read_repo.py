@@ -1,28 +1,31 @@
 import os
-from app.chunking.chunker import chunk_text
 
-documents = []
-repo_path = "repositories/repo"
+def read_repository(repo_path):
 
-for root, dirs, files in os.walk(repo_path):
-    for file in files:
-        if file.endswith((".py", ".md", ".txt")):
+    documents = []
 
-            full_path = os.path.join(root, file)
-            #print(full_path)
-            try:
-                with open(full_path, "r",encoding="utf-8",errors="ignore") as f:
-                    content = f.read()
-                chunks=chunk_text(content)
-                for chunk in chunks:
+    for root, dirs, files in os.walk(repo_path):
+
+        for file in files:
+
+            if file.endswith((".py", ".md", ".txt")):
+
+                full_path = os.path.join(root, file)
+
+                try:
+
+                    with open(full_path, "r", encoding="utf-8", errors="ignore") as f:
+
+                        content = f.read()
+
                     documents.append(
                         {
                             "path": full_path,
-                            "content": chunk
+                            "content": content
                         }
                     )
-            except Exception as e:
-                print(e)
-print(len(documents))
 
-                
+                except Exception as e:
+                    print(e)
+
+    return documents

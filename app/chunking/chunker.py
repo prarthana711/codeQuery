@@ -15,9 +15,18 @@ def chunk_text(text, chunk_size=500, overlap=100):
 
     return chunks
 
-text = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+def chunk_documents(documents):
+    chunked_documents = []
 
-chunks = chunk_text(text, chunk_size=5, overlap=2)
+    for document in documents:
 
-for chunk in chunks:
-    print(chunk)
+        chunks = chunk_text(document["content"])
+
+        for chunk in chunks:
+
+            chunked_documents.append({
+                "path": document["path"],
+                "content": chunk
+            })
+
+    return chunked_documents
