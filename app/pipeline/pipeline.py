@@ -1,5 +1,5 @@
 from app.embeddings.embedder import Embedder
-from app.vector_store.vector_store import VectorStore
+from app.vector_store.faiss_store import FAISSVectorStore
 
 
 class Pipeline:
@@ -8,7 +8,7 @@ class Pipeline:
 
         self.embedder = Embedder()
 
-        self.store = VectorStore()
+        self.store = FAISSVectorStore()
 
     def build(self, documents):
 

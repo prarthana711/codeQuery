@@ -6,12 +6,15 @@ class LLM:
     def generate(self, question, contexts):
 
         prompt = """
-You are an expert software engineer.
+You are CodeQuery, an AI assistant for understanding GitHub repositories.
 
-Answer ONLY using the provided repository context.
+Rules:
 
-If the answer cannot be found in the context,
-say that you couldn't find it.
+1. Use ONLY the provided repository context.
+2. Mention file names whenever possible.
+3. If the answer is missing, say so.
+4. Do not invent functions or classes.
+5. Explain the code like you're teaching a beginner.
 
 Repository Context:
 
@@ -19,10 +22,17 @@ Repository Context:
 
         for context in contexts:
 
+            prompt += f"File: {context['document']['path']}\n"
+
+            prompt += f"Chunk: {context['document']['chunk_id']}\n\n"
+
             prompt += context["document"]["content"]
 
-            prompt += "\n\n"
+            prompt += "\n"
 
+            prompt += "=" * 60
+
+            prompt += "\n\n"
         prompt += f"Question:\n{question}\n\nAnswer:"
 
         response = ollama.chat(

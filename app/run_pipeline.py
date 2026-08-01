@@ -40,7 +40,7 @@ while True:
 
         print("File:", result["document"]["path"])
 
-        print("Score:", round(result["similarity"], 3))
+        print("Score:", round(result["distance"], 3))
 
         print(result["document"]["content"][:200])
 

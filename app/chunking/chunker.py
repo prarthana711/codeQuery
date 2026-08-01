@@ -22,10 +22,11 @@ def chunk_documents(documents):
 
         chunks = chunk_text(document["content"])
 
-        for chunk in chunks:
+        for i, chunk in enumerate(chunks):
 
             chunked_documents.append({
                 "path": document["path"],
+                "chunk_id": i,
                 "content": chunk
             })
 
