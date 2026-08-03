@@ -4,8 +4,18 @@ from app.ingestion.read_repo import read_repository
 from app.chunking.chunker import chunk_documents
 from app.pipeline.pipeline import Pipeline
 from app.llm.llm import LLM
+from fastapi.middleware.cors import CORSMiddleware
 
 app = FastAPI()
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=[
+        "http://localhost:5173",
+    ],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 pipeline = Pipeline()
 llm = LLM()
 
@@ -31,8 +41,13 @@ def ask(request: QuestionRequest):
     results = pipeline.search(request.question)
 
     answer = llm.generate(request.question, results)
+    sources = []
 
+    for result in results:
+        sources.append(result["document"]["path"])
+    sources = list(set(sources))
     return {
         "question": request.question,
-        "answer": answer
+        "answer": answer,
+        "sources":sources
     }
