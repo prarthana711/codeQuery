@@ -1,10 +1,13 @@
 from fastapi import FastAPI
-from app.api.models import QuestionRequest
+from app.api.models import QuestionRequest, RepositoryRequest
 from app.ingestion.read_repo import read_repository
 from app.chunking.chunker import chunk_documents
 from app.pipeline.pipeline import Pipeline
 from app.llm.llm import LLM
 from fastapi.middleware.cors import CORSMiddleware
+import os
+import shutil
+from git import Repo
 
 app = FastAPI()
 app.add_middleware(
@@ -21,11 +24,13 @@ llm = LLM()
 
 repo_path = "repositories/repo"
 
-documents = read_repository(repo_path)
+def build_repository(repo_path):
+    pipeline.store.reset()
+    documents = read_repository(repo_path)
+    chunked_documents = chunk_documents(documents)
+    pipeline.build(chunked_documents)
 
-chunked_documents = chunk_documents(documents)
-
-pipeline.build(chunked_documents)
+build_repository("repositories/repo")
 
 print("Repository indexed successfully!")
 @app.get("/")
@@ -34,6 +39,26 @@ def home():
     return {
         "message": "Welcome to CodeQuery API"
     }
+
+@app.post("/clone")
+def clone_repository(request: RepositoryRequest):
+
+    repo_directory = "repositories/repo"
+
+    # Delete the previous repository if it exists
+    if os.path.exists(repo_directory):
+        shutil.rmtree(repo_directory)
+
+    # Clone the new repository
+    Repo.clone_from(request.repo_url, repo_directory)
+
+    # Build embeddings for the new repository
+    build_repository(repo_directory)
+
+    return {
+        "message": "Repository analyzed successfully!"
+    }
+
 
 @app.post("/ask")
 def ask(request: QuestionRequest):

@@ -4,6 +4,7 @@ function App() {
   const [question, setQuestion] = useState("");
   const [messages, setMessages] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [repoUrl, setRepoUrl] = useState("");
   const bottomRef = useRef(null);
   useEffect(() => {
     bottomRef.current?.scrollIntoView({
@@ -11,6 +12,48 @@ function App() {
     });
   }, [messages, loading]);
 
+  async function handleClone() {
+
+    if (repoUrl.trim() === "") {
+      alert("Please enter a GitHub repository URL.");
+      return;
+    }
+
+    try {
+
+      setLoading(true);
+
+      const response = await fetch(
+        "http://127.0.0.1:8000/clone",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            repo_url: repoUrl,
+          }),
+        }
+      );
+
+      const data = await response.json();
+
+      alert(data.message);
+
+      setMessages([]);
+
+    } catch (error) {
+
+      console.error(error);
+
+      alert("Could not analyze repository.");
+
+    } finally {
+
+      setLoading(false);
+
+    }
+  }
   async function handleAsk() {
     if (question.trim() === "") {
       alert("Please enter a question.");
@@ -66,6 +109,25 @@ function App() {
       <h1>CodeQuery</h1>
 
       <p>Ask anything about your GitHub repository.</p>
+      <h2>Analyze GitHub Repository</h2>
+
+        <div style={{ display: "flex", gap: "10px", marginBottom: "20px" }}>
+          <input
+            type="text"
+            value={repoUrl}
+            onChange={(e) => setRepoUrl(e.target.value)}
+            placeholder="https://github.com/username/repository"
+            style={{
+              flex: 1,
+              padding: "10px",
+              fontSize: "16px",
+            }}
+          />
+
+          <button onClick={handleClone}>
+            Analyze Repository
+          </button>
+        </div>
 
       {/* Input Section */}
       <div style={{ display: "flex", gap: "10px" }}>

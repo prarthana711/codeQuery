@@ -11,6 +11,15 @@ class FAISSVectorStore:
         # Store the corresponding documents (metadata)
         self.documents = []
 
+    def reset(self):
+        """
+        Clear the current index and stored documents.
+        """
+
+        self.index = faiss.IndexFlatL2(384)
+
+        self.documents = []
+
     def add(self, vectors, documents):
         """
         Add vectors and their corresponding documents to the index.
@@ -50,7 +59,7 @@ class FAISSVectorStore:
 
             results.append({
                 "document": self.documents[index],
-                "distance": float(distances[0][i])
+                "similarity": float(distances[0][i])
             })
 
         return results
