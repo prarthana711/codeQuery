@@ -22,17 +22,28 @@ app.add_middleware(
 pipeline = Pipeline()
 llm = LLM()
 
-repo_path = "repositories/repo"
+
 
 def build_repository(repo_path):
+
     pipeline.store.reset()
+
     documents = read_repository(repo_path)
+
     chunked_documents = chunk_documents(documents)
+
     pipeline.build(chunked_documents)
 
-build_repository("repositories/repo")
+    return {
+        "files": len(documents),
+        "chunks": len(chunked_documents)
+    }
 
-print("Repository indexed successfully!")
+if os.path.exists("repositories/active_repo"):
+
+    build_repository("repositories/active_repo")
+
+    print("Repository indexed successfully!")
 @app.get("/")
 def home():
 
@@ -45,18 +56,22 @@ def clone_repository(request: RepositoryRequest):
 
     repo_directory = "repositories/repo"
 
-    # Delete the previous repository if it exists
     if os.path.exists(repo_directory):
         shutil.rmtree(repo_directory)
 
-    # Clone the new repository
     Repo.clone_from(request.repo_url, repo_directory)
 
-    # Build embeddings for the new repository
-    build_repository(repo_directory)
+    stats = build_repository(repo_directory)
+
+    repo_name = request.repo_url.rstrip("/").split("/")[-1]
+    owner = request.repo_url.rstrip("/").split("/")[-2]
 
     return {
-        "message": "Repository analyzed successfully!"
+        "message": "Repository analyzed successfully!",
+        "repository": repo_name,
+        "owner": owner,
+        "files": stats["files"],
+        "chunks": stats["chunks"]
     }
 
 

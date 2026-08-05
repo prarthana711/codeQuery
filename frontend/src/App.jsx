@@ -1,11 +1,16 @@
 import { useState, useRef, useEffect } from "react";
 import "./App.css";
+
 function App() {
   const [question, setQuestion] = useState("");
   const [messages, setMessages] = useState([]);
   const [loading, setLoading] = useState(false);
+
   const [repoUrl, setRepoUrl] = useState("");
+  const [repoInfo, setRepoInfo] = useState(null);
+
   const bottomRef = useRef(null);
+
   useEffect(() => {
     bottomRef.current?.scrollIntoView({
       behavior: "smooth",
@@ -13,47 +18,41 @@ function App() {
   }, [messages, loading]);
 
   async function handleClone() {
-
     if (repoUrl.trim() === "") {
       alert("Please enter a GitHub repository URL.");
       return;
     }
 
+    setLoading(true);
+
     try {
-
-      setLoading(true);
-
-      const response = await fetch(
-        "http://127.0.0.1:8000/clone",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            repo_url: repoUrl,
-          }),
-        }
-      );
+      const response = await fetch("http://127.0.0.1:8000/clone", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          repo_url: repoUrl,
+        }),
+      });
 
       const data = await response.json();
 
-      alert(data.message);
+      setRepoInfo(data);
 
+      // Clear old chat when a new repository is analyzed
       setMessages([]);
+      setQuestion("");
 
+      alert(data.message);
     } catch (error) {
-
       console.error(error);
-
       alert("Could not analyze repository.");
-
     } finally {
-
       setLoading(false);
-
     }
   }
+
   async function handleAsk() {
     if (question.trim() === "") {
       alert("Please enter a question.");
@@ -93,7 +92,6 @@ function App() {
       console.error(error);
       alert("Could not connect to the backend.");
     } finally {
-      // This runs whether the request succeeds or fails
       setLoading(false);
     }
   }
@@ -109,28 +107,91 @@ function App() {
       <h1>CodeQuery</h1>
 
       <p>Ask anything about your GitHub repository.</p>
+
+      {/* Repository Section */}
+
       <h2>Analyze GitHub Repository</h2>
 
-        <div style={{ display: "flex", gap: "10px", marginBottom: "20px" }}>
-          <input
-            type="text"
-            value={repoUrl}
-            onChange={(e) => setRepoUrl(e.target.value)}
-            placeholder="https://github.com/username/repository"
+      <div
+        style={{
+          display: "flex",
+          gap: "10px",
+          marginBottom: "20px",
+        }}
+      >
+        <input
+          type="text"
+          value={repoUrl}
+          onChange={(e) => setRepoUrl(e.target.value)}
+          placeholder="https://github.com/username/repository"
+          style={{
+            flex: 1,
+            padding: "10px",
+            fontSize: "16px",
+          }}
+        />
+
+        <button
+          onClick={handleClone}
+          disabled={loading}
+          style={{
+            padding: "10px 20px",
+            cursor: loading ? "not-allowed" : "pointer",
+          }}
+        >
+          {loading ? "Analyzing..." : "Analyze Repository"}
+        </button>
+      </div>
+
+      {/* Repository Information */}
+
+      {repoInfo && (
+        <div
+          style={{
+            background: "#f7f7f7",
+            border: "1px solid #ddd",
+            borderRadius: "10px",
+            padding: "15px",
+            marginBottom: "20px",
+          }}
+        >
+          <h3>📂 Repository Loaded</h3>
+
+          <p>
+            <strong>Owner:</strong> {repoInfo.owner}
+          </p>
+
+          <p>
+            <strong>Repository:</strong> {repoInfo.repository}
+          </p>
+
+          <p>
+            <strong>Files Indexed:</strong> {repoInfo.files}
+          </p>
+
+          <p>
+            <strong>Chunks Created:</strong> {repoInfo.chunks}
+          </p>
+
+          <p
             style={{
-              flex: 1,
-              padding: "10px",
-              fontSize: "16px",
+              color: "green",
+              fontWeight: "bold",
             }}
-          />
-
-          <button onClick={handleClone}>
-            Analyze Repository
-          </button>
+          >
+            ✅ Ready for Questions
+          </p>
         </div>
+      )}
 
-      {/* Input Section */}
-      <div style={{ display: "flex", gap: "10px" }}>
+      {/* Question Input */}
+
+      <div
+        style={{
+          display: "flex",
+          gap: "10px",
+        }}
+      >
         <input
           type="text"
           value={question}
@@ -160,15 +221,14 @@ function App() {
         </button>
       </div>
 
-      {/* Chat Messages */}
+      {/* Chat */}
+
       <div className="chat-window">
         {messages.map((message, index) => (
           <div
             key={index}
             className={`message ${
-              message.role === "user"
-                ? "user"
-                : "assistant"
+              message.role === "user" ? "user" : "assistant"
             }`}
           >
             <strong>
@@ -184,7 +244,7 @@ function App() {
                 <ul>
                   {message.sources.map((source, i) => (
                     <li key={i}>
-                      {source.replace("repositories/repo", "")}
+                      {source.replace("repositories/active_repo", "")}
                     </li>
                   ))}
                 </ul>
@@ -193,22 +253,20 @@ function App() {
           </div>
         ))}
 
-        {/* Loader */}
-        {
-          loading && (
-            <div className="loader">
+        {/* Typing Loader */}
 
-              <strong>🤖 CodeQuery</strong>
+        {loading && (
+          <div className="loader">
+            <strong>🤖 CodeQuery</strong>
 
-              <div className="typing">
-                <span></span>
-                <span></span>
-                <span></span>
-              </div>
-
+            <div className="typing">
+              <span></span>
+              <span></span>
+              <span></span>
             </div>
-          )
-        }
+          </div>
+        )}
+
         <div ref={bottomRef}></div>
       </div>
     </div>

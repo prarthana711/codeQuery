@@ -12,6 +12,10 @@ class Pipeline:
 
     def build(self, documents):
 
+        if len(documents) == 0:
+            print("No documents to index.")
+            return
+
         texts = []
 
         for doc in documents:
@@ -22,7 +26,6 @@ class Pipeline:
         self.store.add(vectors, documents)
 
         print(f"Indexed {len(documents)} chunks")
-
     def search(self, question):
 
         query_vector = self.embedder.embed(question)
