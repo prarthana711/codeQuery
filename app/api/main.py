@@ -51,17 +51,20 @@ def home():
         "message": "Welcome to CodeQuery API"
     }
 
+import uuid
+
 @app.post("/clone")
 def clone_repository(request: RepositoryRequest):
 
-    repo_directory = "repositories/repo"
+    repo_id = str(uuid.uuid4())[:8]
 
-    if os.path.exists(repo_directory):
-        shutil.rmtree(repo_directory)
+    repo_path = f"repositories/{repo_id}"
 
-    Repo.clone_from(request.repo_url, repo_directory)
+    Repo.clone_from(request.repo_url, repo_path)
 
-    stats = build_repository(repo_directory)
+    pipeline.store.reset()
+
+    stats = build_repository(repo_path)
 
     repo_name = request.repo_url.rstrip("/").split("/")[-1]
     owner = request.repo_url.rstrip("/").split("/")[-2]

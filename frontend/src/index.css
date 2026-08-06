@@ -54,12 +54,15 @@ body {
   margin: 0;
 }
 
+/*
+  #root previously had a fixed width (1126px), centered margin, a
+  border-inline, and text-align: center — that's what was drawing the
+  vertical lines and boxing the page in. App.css's .terminal-shell
+  already handles centering and spacing, so #root just needs to get
+  out of the way and fill the viewport.
+*/
 #root {
-  width: 1126px;
-  max-width: 100%;
-  margin: 0 auto;
-  text-align: center;
-  border-inline: 1px solid var(--border);
+  width: 100%;
   min-height: 100svh;
   display: flex;
   flex-direction: column;
